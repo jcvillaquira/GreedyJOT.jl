@@ -3,40 +3,10 @@ using Plots
 
 f = CSV.File(open("data/example.csv"), header=false).Column1
 
-# Struct to hold a zero-mean time series and its cumulative sum
-mutable struct ZeroMeanSeries{T}
-  data::Vector{T}
-  N::Int64
-  cumsum::Vector{T}
-  average::T
-end
+include("src/series.jl")
+include("src/index.jl")
 
-# Function to create a ZeroMeanSeries from a given data vector
-function ZeroMeanSeries(data::Vector{T}) where T
-  N = length(data)
-  avg = sum(data) / N
-  new_data = data .- avg
-  data_cumsum = cumsum(new_data)
-  return ZeroMeanSeries(new_data, N, data_cumsum, avg)
-end
-
-# Function to compute the dual total variation of a ZeroMeanSeries
-dualTV(series::ZeroMeanSeries) = maximum(abs.(series.cumsum))
-
-# Finds index where dual TV is maximized
-function violating_index(series::ZeroMeanSeries)
-  max_dual_tv, val, idx = -Inf, 0.0, 0
-  for i in eachindex(series.data)
-    val += series.data[i]
-    if abs(val) > max_dual_tv
-      max_dual_tv = abs(val)
-      idx = i
-    end
-  end
-  return idx
-end
-
-
+# TODO: Remove cumsum
 
 # Jump identification function
 function jump_identification!(data::Vector{T}, min_length::Int; starting_index::Int = 0, top_level::Bool = true, jump_index::Union{Set{Int}, Nothing} = nothing) where T
@@ -71,10 +41,6 @@ for k in 1:(length(idx)-1)
   avg = sum(sub_data) / length(sub_data)
   plot!(p, i1:i2, fill(avg, length(i1:i2)), color = :red)
 end
-
-
-
-p
 
 plot(p; dpi = 1000)
 savefig("./example.png")
