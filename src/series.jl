@@ -2,7 +2,6 @@
 mutable struct ZeroMeanSeries{T}
   data::Vector{T}
   N::Int64
-  cumsum::Vector{T}
   average::T
 end
 
@@ -11,9 +10,8 @@ function ZeroMeanSeries(data::Vector{T}) where T
   N = length(data)
   avg = sum(data) / N
   new_data = data .- avg
-  data_cumsum = cumsum(new_data)
-  return ZeroMeanSeries(new_data, N, data_cumsum, avg)
+  return ZeroMeanSeries(new_data, N, avg)
 end
 
 # Function to compute the dual total variation of a ZeroMeanSeries
-dualTV(series::ZeroMeanSeries) = maximum(abs.(series.cumsum))
+# dualTV(series::ZeroMeanSeries) = maximum(abs.(series.cumsum))

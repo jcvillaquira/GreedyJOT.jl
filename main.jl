@@ -6,7 +6,29 @@ f = CSV.File(open("data/example.csv"), header=false).Column1
 include("src/series.jl")
 include("src/index.jl")
 
-# TODO: Remove cumsum
+series = ZeroMeanSeries(f)
+
+mutable struct JumpIdentifier
+  min_length::Int
+  index::Union{Set{Int}, Nothing}
+  simple::Bool
+  base_lambda::Float64
+end
+
+function JumpIdentifier(; min_length::Int = 2, base_lambda::Float64 = 0.0, simple::Bool = true)
+  index = Set{Int}()
+  return JumpIndetifier(min_length, index, simple, base_lambda)
+end
+
+function jump_indentification!(jump_id::JumpIdentifier, series::ZeroMeanSeries; starting_index = 0, top_level::Bool = true)
+  if top_level
+    jump_id.index = Set{Int}([0, length(series.data)])
+  end
+  if length(series.data) < jump_id.min_length
+    return nothing
+  end
+  # TODO: Finish rewriting
+end
 
 # Jump identification function
 function jump_identification!(data::Vector{T}, min_length::Int; starting_index::Int = 0, top_level::Bool = true, jump_index::Union{Set{Int}, Nothing} = nothing) where T
