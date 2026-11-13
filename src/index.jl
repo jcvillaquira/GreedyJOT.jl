@@ -23,13 +23,14 @@ function simple_argmax_index(series::ZeroMeanSeries; lambda::Float64 = 0.0)
 end
 
 # Find optimal index with formula
-function fancy_argmax_index(series::ZeroMeanSeries, lambda::Float64 = 0.0)
+function fancy_argmax_index(series::ZeroMeanSeries; lambda::Float64 = 0.0)
   max_dual_tv, sk, idx = -Inf, 0.0, 0
-  for k in eachindex(series.data)
+  for k in 1:(length(series.data) - 1)
     nk = length(series.data) - k
     sk += series.data[k]
     param = max(abs(sk) - lambda / 2, 0.0) ^ 2
     param /= ( k * nk / length(series.data) )
+    println(param)
     if param > max_dual_tv
       max_dual_tv = param
       idx = k
