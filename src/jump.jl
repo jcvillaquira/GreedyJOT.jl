@@ -3,21 +3,33 @@ mutable struct JumpIdentifier
   index::Union{Set{Int}, Nothing}
   simple::Bool
   base_lambda::Float64
+  lambda::Float64
+  variable_lambda::Bool
 end
 
-function JumpIdentifier(; min_length::Int = 2, base_lambda::Float64 = 0.0, simple::Bool = true)
+function JumpIdentifier(; min_length::Int = 2, base_lambda::Float64 = 0.0, simple::Bool = true, variable_lambda::Bool = false)
   index = Set{Int}()
-  return JumpIdentifier(min_length, index, simple, base_lambda)
+  lambda = base_lambda
+  return JumpIdentifier(min_length, index, simple, base_lambda, lambda, variable_lambda)
+end
+
+function get_lambda(jump_id::JumpIdentifier, series::ZeroMeanSeries)
+  if jump_id.variable_lambda
+    return jump_id.lambda * length(series.data)
+  end
+  return jump_id.base_lambda
 end
 
 function jump_identification!(jump_id::JumpIdentifier, series::ZeroMeanSeries; starting_index = 0, top_level::Bool = true)
   if top_level
+    jump_id.lambda = jump_id.base_lambda / length(series.data)
     jump_id.index = Set{Int}([0, length(series.data)])
   end
   if length(series.data) < jump_id.min_length
     return nothing
   end
-  k = argmax_index(series; lambda = jump_id.base_lambda, simple = jump_id.simple)
+  lambda = get_lambda(jump_id, series)
+  k = argmax_index(series; lambda = lambda, simple = jump_id.simple)
   if isnothing(k)
     return nothing
   end
